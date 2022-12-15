@@ -1,8 +1,5 @@
 <script setup>
 import gsap from 'gsap'
-import Draggable from 'gsap/Draggable'
-
-gsap.registerPlugin(Draggable)
 
 const imgList = ref([
   'https://cloud-dental-clinic.com/assets/img/top/kv1_pc.webp',
@@ -36,65 +33,61 @@ const imgList = ref([
 ])
 const txt = ref(null)
 const txtW = ref(0)
+const marqueeBox = ref(null)
 
 const { width } = useWindowSize()
 
-console.log(txtW.value)
+useResizeObserver(txt, (entries) => {
+  const entry = entries[0]
+  const { width } = entry.contentRect
+  txtW.value = width
+})
 
 const windowW = computed(() => {
-  return width
+  return txtW.value ? Math.ceil(width.value / txtW.value) : 1
 })
 
 onMounted(() => {
-  useResizeObserver(txt, (entries) => {
-    const entry = entries[0]
-    const { width } = entry.contentRect
-    txtW.value = width
-  })
-  // const timeline = gsap.timeline()
-  // timeline
-  //   .to('.box', {
-  //     duration: 100,
-  //     rotate: -360,
-  //     repeat: -1,
-  //     ease: 'none',
-  //   })
-  // .fromTo('.first', {
-  //   xPercent: 100,
-  //   duration: 30,
-  //   ease: 'none',
-  //   repeat: -1,
-  // }, {
-  //   xPercent: -300,
-  //   duration: 30,
-  //   ease: 'none',
-  //   repeat: -1,
-  // }, '<')
-  // .fromTo('.second', {
-  //   xPercent: 100,
-  //   duration: 30,
-  //   ease: 'none',
-  //   repeat: -1,
-  // }, {
-  //   xPercent: -300,
-  //   duration: 30,
-  //   ease: 'none',
-  //   repeat: -1,
-  // }, '<')
+  const timeline = gsap.timeline()
+  timeline
+    .to('.box', {
+      duration: 100,
+      rotate: -360,
+      repeat: -1,
+      ease: 'none',
+    })
+    .to('.marqueeBox', {
+      xPercent: -100,
+      duration: 20,
+      ease: 'none',
+    }, '<')
+    .set('.marqueeBox', {
+      xPercent: -50,
+      ease: 'none',
+      duration: 0,
+    })
+    .to('.marqueeBox', {
+      xPercent: -100,
+      duration: 10,
+      ease: 'none',
+      repeat: -1,
+    })
 })
 </script>
 
 <template lang="pug">
 .page
-  p {{ width }} / {{ txtW.value }} / {{ windowW }}
   .marquee
-    .marqueeBox
+    .marqueeBox(:style="{ left: `${width}px` }")
       .first
-        .txt(ref="txt") インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科
-      //- .second インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科&nbsp;&nbsp;&nbsp;&nbsp;インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科
+        .txt(ref="txt") インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科&nbsp;&nbsp;&nbsp;&nbsp;
+        .txt(v-for="index in windowW - 1") インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科&nbsp;&nbsp;&nbsp;&nbsp;
+      .second
+        .txt インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科&nbsp;&nbsp;&nbsp;&nbsp;
+        .txt(v-for="index in windowW - 1") インプラント治療、矯正治療、セラミック等の審美歯科、ホワイトニングは近江八幡のクラウド歯科&nbsp;&nbsp;&nbsp;&nbsp;
   .box
     .pic(
-      v-for="(item, index) in imgList"
+      v-for="(item, index) of imgList"
       :class=`"pic"+(index+1)`
     )
       img(:src='item')
@@ -108,14 +101,14 @@ onMounted(() => {
   position: relative
   .marquee
     width: 100%
-    white-space: nowrap
-    .first, .second
-      display: inline-block
-      margin: 0 10px
-    .first
-      color: red
-    .second
-      color: blue
+    .marqueeBox
+      position: relative
+      display: inline-flex
+      .first, .second
+        display: inline-block
+        white-space: nowrap
+        .txt
+          display: inline-block
   .box
     width: 300vw
     height: 300vw
@@ -132,7 +125,7 @@ onMounted(() => {
         position: absolute
         left: 50%
         transform: translateX(-50%)
-        width: 530px
+        width: 8.5%
 
     $max: 28
     @for $i from 2 through $max
